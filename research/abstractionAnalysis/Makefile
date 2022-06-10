@@ -1,12 +1,14 @@
 input=SinglyLinkedList.h_orig
 output=
 debug=
+POET_HOME=../../trunk
+POET=pcg #or ~/POET/trunk/src/pcg or $(POET_HOME)/src/pcg to be revised
 
 now:
-	~/POET/trunk/src/pcg $(debug) -L../../trunk/lib -pinputFile=testfiles/$(input) -poutputFile=$(output) -pspecFile=semantics/abstractions.spec abstractionAnalysis.pt
+	$(POET) $(debug) -L$(POET_HOME)/lib -pinputFile=testfiles/$(input) -poutputFile=$(output) -pspecFile=semantics/abstractions.spec abstractionAnalysis.pt
 
 stack:
-	pcg $(debug) -L../../trunk/lib -pinputFile=testfiles/$(input) -poutputFile=$(output) -pspecFile=semantics/abstractions.spec abstractionAnalysis.pt
+	$(POET) $(debug) -L$(POET_HOME)/lib -pinputFile=testfiles/$(input) -poutputFile=$(output) -pspecFile=semantics/abstractions.spec abstractionAnalysis.pt
 
 queue:
-	pcg $(debug) -L../../trunk/lib -pinputFile=testfiles/$(input) -poutputFile=$(output) -pspecFile=semantics/abstractions_queue.spec abstractionAnalysis.pt
+	$(POET) $(debug) -L$(POET_HOME)/lib -pinputFile=testfiles/$(input) -poutputFile=$(output) -pspecFile=semantics/abstractions_queue.spec abstractionAnalysis.pt
