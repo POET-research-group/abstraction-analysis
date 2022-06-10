@@ -1,3 +1,0 @@
-
-SUBDIRS = $(tooldirs)
-DIST_SUBDIRS=$(SUBDIRS)
