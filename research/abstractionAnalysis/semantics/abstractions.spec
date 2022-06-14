@@ -13,4 +13,3 @@ Queue: { front elem ... back } with
   Empty : { front back } -> { front back } * true;
           { front elem1 elem ... back } -> { front elem1 elem ... back } * false;
 };
-
