@@ -124,6 +124,9 @@ Forward declarations
 
 <code MappingOfVariables pars=(from, to)/>
 
+<** Temporary for SymbolicEvaluation mockup **>
+<define className "SinglyLinkedList"/>
+
 <************************************************************
 Define MatchAbstraction
 *************************************************************
@@ -153,7 +156,9 @@ returns (f_v, f_d, f_m)  where
     succ = TRUE;
 
     foreach m_a = CODE.AbstractionMethod \in methods_a do
-      <*print("m_a in MatchAbstraction is " m_a);*>
+
+      print("f_v is " f_v);
+      print("f_d is " f_d);
       c_m = MatchFunctionSemantics(m_a, methods_i, f_v, f_d);
       if (c_m : NULL) {
         succ = FALSE; 
@@ -182,25 +187,33 @@ returns AbstractionDataImpl if semantics of data_a can be successfully mapped to
   p_v = XFORM.PositionVariablesOfAbstraction(data_a);
   p_i = XFORM.PointerMemberVariablesOfClass(vars_i);
   result = NULL;
-  foreach f_v=(_,_) \in DEBUG{XFORM.PossibleMappings(p_v, p_i)} do
+  mappings = DEBUG{XFORM.PossibleMappings(p_v, p_i)};
+  for(p=mappings; p != NULL; p = cdr(p)){
+    f_v = car(p);
+    DEBUG{f_v};
     D_i = NULL;  <<* D_i is all internal state implementations
     foreach d_a = CODE.Record#(var=_) \in data_a do
-      d_i = XFORM.TranslateToImplementation(d_a, f_v);
+      d_i = XFORM.TranslateToImplementation(var, f_v);
       D_i = d_i :: D_i;
     enddo;
     succ = TRUE;
 
     foreach cur=(CODE.FunctionDecl|CODE.TemplateDecl) \in methods_i do
       if (cur : CODE.TemplateDecl#(_,CODE.FunctionDecl#(CLEAR f,_,_,_))|CODE.FunctionDecl#(CLEAR f,_,_,_))
-        D_j = XFORM.SymbolicEvaluation(f, D_i);
-        if (!XFORM.is_subset(D_j, D_i))
+        D_j = DEBUG{XFORM.SymbolicEvaluation(f, D_i)};
+        DEBUG{D_j};
+        DEBUG{D_i};
+        if (!Lookup(D_j, D_i))
           succ = FALSE;
           continue;
     enddo;
 
     if (succ)
+      print("what is happening");
       result = (CODE.AbstractionDataImpl#(_,f_v,D_i)) :: result;
-  enddo;  
+  }
+
+  print("RESULT: " result);
   return result;
 </xform>
 
@@ -300,11 +313,11 @@ Input = mapping : list of combination pairs of a position variable and a pointer
 Output = returns TRUE if the target can be found in mapping
 ***>
 <xform MappingContains pars=(mapping, target)>
-  foreach pair = (pv=_,pi=_) \in mapping do 
-    if(pi : target){
+  for(p=mapping; p != NULL; p = cdr(p)){
+    if(cdr(car(p)) : (target NULL)){
       return TRUE;
     }
-  enddo;
+  }
   return FALSE;
 </xform>
 
@@ -327,7 +340,7 @@ Each mapping consists of each position variable mapped to a single pointer membe
       viFound = FALSE;
       foreach v_i = ID \in car(p) do
         if(!(XFORM.MappingContains(f_v, v_i))){
-          f_v = (v_p, v_i) :: f_v;
+          f_v = (v_p v_i) :: f_v;
           viFound = TRUE;
           break;
         }
@@ -381,24 +394,14 @@ Output = list of permuted elements from given input
 <* MOCK UP TO BE REPLACED*>
 <xform SymbolicEvaluation pars=(m_i, f_d)>
   res = NULL;
-  foreach CODE.Record#(v=_) \in f_d do
-    <*stack*>
-    if(LEN(v) <= 2){
-      if(m_i : "PushFirst"){
-        res = ("head" "OneOrMoreData");
-      }else{
-        res = ("head" "ZeroOrMoreData");
-      }
-    <*queue*>
-    } else {
-      if(m_i : "DeleteAll") {
-        res = ("head" "end");
-      }else if(m_i : "PushFirst"){
-        res = ("head" "OneOrMoreData" "end");
-      }else {
-        res = ("head" "ZeroOrMoreData" "end");
-      }
+  if(className : "SinglyLinkedList"){
+    if(m_i : "DeleteAll"){
+      res = ("head" "end");
+    }else if(m_i : "PushFirst"){
+      res = ("head" "OneOrMoreData" "end");
+    }else{
+      res = ("head" "ZeroOrMoreData" "end");
     }
-  enddo;
+  }
   return res;
 </xform>
