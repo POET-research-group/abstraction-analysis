@@ -125,7 +125,7 @@ Forward declarations
 <code MappingOfVariables pars=(from, to)/>
 
 <** Temporary for SymbolicEvaluation mockup **>
-<define className "SinglyLinkedList"/>
+<define className ""/>
 
 <************************************************************
 Define MatchAbstraction
@@ -144,6 +144,8 @@ returns (f_v, f_d, f_m)  where
 *************************************************************>
 <xform MatchAbstraction pars=(input, abs)>
   CODE.ClassType#(name_i, body_i, _) = input;
+  
+  GLOBAL.className = name_i;
 
   vars_i = XFORM.member_variables(body_i);
   methods_i = XFORM.member_functions(input);
@@ -156,9 +158,6 @@ returns (f_v, f_d, f_m)  where
     succ = TRUE;
 
     foreach m_a = CODE.AbstractionMethod \in methods_a do
-
-      print("f_v is " f_v);
-      print("f_d is " f_d);
       c_m = MatchFunctionSemantics(m_a, methods_i, f_v, f_d);
       if (c_m : NULL) {
         succ = FALSE; 
@@ -187,10 +186,10 @@ returns AbstractionDataImpl if semantics of data_a can be successfully mapped to
   p_v = XFORM.PositionVariablesOfAbstraction(data_a);
   p_i = XFORM.PointerMemberVariablesOfClass(vars_i);
   result = NULL;
-  mappings = DEBUG{XFORM.PossibleMappings(p_v, p_i)};
+  mappings = XFORM.PossibleMappings(p_v, p_i);
+  DEBUG{mappings};
   for(p=mappings; p != NULL; p = cdr(p)){
     f_v = car(p);
-    DEBUG{f_v};
     D_i = NULL;  <<* D_i is all internal state implementations
     foreach d_a = CODE.Record#(var=_) \in data_a do
       d_i = XFORM.TranslateToImplementation(var, f_v);
@@ -198,22 +197,23 @@ returns AbstractionDataImpl if semantics of data_a can be successfully mapped to
     enddo;
     succ = TRUE;
 
+    D_j = NULL;
     foreach cur=(CODE.FunctionDecl|CODE.TemplateDecl) \in methods_i do
       if (cur : CODE.TemplateDecl#(_,CODE.FunctionDecl#(CLEAR f,_,_,_))|CODE.FunctionDecl#(CLEAR f,_,_,_))
-        D_j = DEBUG{XFORM.SymbolicEvaluation(f, D_i)};
-        DEBUG{D_j};
-        DEBUG{D_i};
-        if (!Lookup(D_j, D_i))
+        d_j = XFORM.SymbolicEvaluation(f, D_i);
+        D_j = d_j :: D_j;
+        if(!Lookup(D_i, d_j)){
           succ = FALSE;
-          continue;
+          break;
+        };
     enddo;
 
     if (succ)
-      print("what is happening");
+      print("What is happening");
       result = (CODE.AbstractionDataImpl#(_,f_v,D_i)) :: result;
   }
 
-  print("RESULT: " result);
+  print("RESULT from MatchDataSemantics is: " result);
   return result;
 </xform>
 
@@ -230,14 +230,16 @@ returns AbstractionFunctionImpl if semantics of m_a can be successfully mapped t
 *************************************************************>
 <xform MatchFunctionSemantics pars=(m_a, methods_i, f_v, f_d)>
   result = NULL;
-  foreach m_i \in methods_i do
-    d_j = XFORM.SymbolicEvaluation(m_i, f_d);
-    (d_a, d_b) = XFORM.AbstractionTransition(m_a);
-    da_fv = XFORM.TranslateToImplementation(d_a, f_v);
-    db_fv = XFORM.TranslateToImplementation(d_b, f_v);
-    if (XFORM.is_subset(da_fv, f_d) && XFORM.is_subset(db_fv, f_d)){
-      result = (m_i, d_j) :: result;
-    }
+  foreach cur=(CODE.FunctionDecl|CODE.TemplateDecl) \in methods_i do
+      if (cur : CODE.TemplateDecl#(_,CODE.FunctionDecl#(CLEAR f,_,_,_))|CODE.FunctionDecl#(CLEAR f,_,_,_)){
+        d_j = XFORM.SymbolicEvaluation(f, f_d);
+        (d_a, d_b) = XFORM.AbstractionTransition(m_a);
+        da_fv = XFORM.TranslateToImplementation(d_a, f_v);
+        db_fv = XFORM.TranslateToImplementation(d_b, f_v);
+        if (XFORM.is_subset(da_fv, f_d) && XFORM.is_subset(db_fv, f_d)){
+          result = (m_i, d_j) :: result;
+        }
+      }
   enddo;
   return result;
 </xform>
@@ -278,7 +280,7 @@ Output = returns implementation of abstraction state by replacing abstraction va
 ***>
 <xform TranslateToImplementation pars=(d_a, f_v)>
   output = d_a;
-  foreach mapping=(v1=_, v2=_) \in f_v do
+  foreach mv = CODE.MappingOfVariables#(v1=_, v2=_) \in f_v do
     output = REPLACE(v1, v2, output);
   enddo;
   return output;
@@ -313,11 +315,11 @@ Input = mapping : list of combination pairs of a position variable and a pointer
 Output = returns TRUE if the target can be found in mapping
 ***>
 <xform MappingContains pars=(mapping, target)>
-  for(p=mapping; p != NULL; p = cdr(p)){
-    if(cdr(car(p)) : (target NULL)){
+  foreach mv = CODE.MappingOfVariables#(_,to=_) \in mapping do
+    if(to : target){
       return TRUE;
     }
-  }
+  enddo;
   return FALSE;
 </xform>
 
@@ -340,7 +342,7 @@ Each mapping consists of each position variable mapped to a single pointer membe
       viFound = FALSE;
       foreach v_i = ID \in car(p) do
         if(!(XFORM.MappingContains(f_v, v_i))){
-          f_v = (v_p v_i) :: f_v;
+          f_v = CODE.MappingOfVariables#(v_p, v_i) :: f_v;
           viFound = TRUE;
           break;
         }
@@ -394,7 +396,7 @@ Output = list of permuted elements from given input
 <* MOCK UP TO BE REPLACED*>
 <xform SymbolicEvaluation pars=(m_i, f_d)>
   res = NULL;
-  if(className : "SinglyLinkedList"){
+  if(className : "SinglyLinkedListWrap"){
     if(m_i : "DeleteAll"){
       res = ("head" "end");
     }else if(m_i : "PushFirst"){
