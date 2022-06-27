@@ -1,29 +1,30 @@
 
 ## About the project
 
-[Brief explanation of goal of project]
+This project aims to automatically discover the higher-level semantics of C++ classes by classifying the classes as abstractions, such as, stacks and queues.
 
 ### Current status
 
 #### First prototype
 
-[Brief description of current status]
+Currently, the project is in the prototyping stage. The aim is to do an initial implementation of the algorithm design.
 
 ### Repository
 
 - `research/abstractionAnalysis/` directory contains all implementations and necessary files for this project
 - `research/abstractionAnalysis/testfiles` directory contains test input files and expected outputs
 - `research/abstractionAnalysis/semantics` directory contains semantic specification files used by the parser
-- `research/abstractionAnalysis/design` directory contains initial prototype design files (should it be included in public repository?)
 
 ## Steps
 
-- Install POET (if you don't have it in your local machine already)
+- Download POET
   - [Repository](https://github.com/qingyi-yan/POET)
-  - [Handbook](http://www.cs.uccs.edu/~qyi/poet/documents/manual.pdf)
-- Go to the `research/abstractionAnalysis/` directory and run `make all`
-  - Run `make stack` to only analyze the given Singly Linked List against a stack abstraction
-  - Run `make queue` to only analyze the given Singly Linked List against a queue abstraction
+  - Place the downloaded `POET` directory in the same directory as `abstraction-analysis`
+  - Alternatively, you may update the `POET_HOME` variable in the Makefile to point to your `POET` directory location
+- Install POET following the directions in the [Handbook](http://www.cs.uccs.edu/~qyi/poet/documents/manual.pdf)
+- Go to the `research/abstractionAnalysis/` directory and run `make all` or
+  - `make stack` to only analyze the given Singly Linked List against a stack abstraction
+  - `make queue` to only analyze the given Singly Linked List against a queue abstraction
 
 ## Contribution guidelines
 

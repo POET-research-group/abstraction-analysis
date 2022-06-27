@@ -4,7 +4,7 @@ debug=
 POET_HOME=../../../POET/trunk
 POET=pcg
 
-now:
+all:
 	$(POET) $(debug) -L$(POET_HOME)/lib -pinputFile=testfiles/$(input) -poutputFile=$(output) -pspecFile=semantics/abstractions.spec abstractionAnalysis.pt
 
 stack:
