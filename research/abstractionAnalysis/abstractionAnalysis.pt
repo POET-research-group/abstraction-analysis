@@ -158,7 +158,7 @@ returns (f_v, f_d, f_m)  where
     succ = TRUE;
 
     foreach m_a = CODE.AbstractionMethod \in methods_a do
-      c_m = MatchFunctionSemantics(m_a, methods_i, f_v, f_d);
+      c_m = DEBUG{MatchFunctionSemantics(m_a, methods_i, f_v, f_d)};
       if (c_m : NULL) {
         succ = FALSE; 
         break;
@@ -233,12 +233,17 @@ returns AbstractionFunctionImpl if semantics of m_a can be successfully mapped t
   foreach cur=(CODE.FunctionDecl|CODE.TemplateDecl) \in methods_i do
       if (cur : CODE.TemplateDecl#(_,CODE.FunctionDecl#(CLEAR f,_,_,_))|CODE.FunctionDecl#(CLEAR f,_,_,_)){
         d_j = XFORM.SymbolicEvaluation(f, f_d);
+        DEBUG{d_j};
         (d_a, d_b) = XFORM.AbstractionTransition(m_a);
+        DEBUG{d_a d_b};
         da_fv = XFORM.TranslateToImplementation(d_a, f_v);
         db_fv = XFORM.TranslateToImplementation(d_b, f_v);
+        DEBUG{da_fv db_fv};
+        <* Must debug *>
         if (XFORM.is_subset(da_fv, f_d) && XFORM.is_subset(db_fv, f_d)){
-          result = (m_i, d_j) :: result;
+          result = (m_a, d_j) :: result;
         }
+        result = CODE.AbstractionFunctionImpl#(f, d_j) :: result;
       }
   enddo;
   return result;
