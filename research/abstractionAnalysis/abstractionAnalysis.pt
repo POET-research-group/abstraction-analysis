@@ -51,80 +51,96 @@ Unparse results
 <*<output to=(outputFile) syntax="abstraction_output.code" from=result/>*>
 
 <************************************************************
-Forward declarations
+Code template declarations
 ************************************************************>
 <*** 
-    data_a data from abstraction specification to match against
-    f_v maps all variables in data_a to its corresponding C++ member variables;
-    f_d maps each possible abstraction state in data_a to its corresponding C++ data representation 
+  data_a : data from abstraction specification to match against
+  f_v : maps all variables in data_a to its corresponding C++ member variables;
+  f_d : maps each possible abstraction state in data_a to its corresponding C++ data representation 
 ***>
 <code AbstractionDataImpl pars=(data_a, f_v, f_d)/>
 
 <*** 
-    methods_a list of state transitions of abstraction
-    f_i maps each state transition in methods_a to its corresponding C++ code implementation
+  methods_a : list of state transitions of abstraction
+  f_i : maps each state transition in methods_a to its corresponding C++ code implementation
 ***>
 <code AbstractionFunctionImpl pars=(methods_a, f_i)/>
 
 <*** 
-    abs the name, variables, data, and interface functions of abstraction specification to match against
-    f_v maps all variables in abs  to its corresponding C++ member variable implementation;
-    f_d maps each possible abstraction state in abs to its corresponding C++ data representation
-    f_m maps each state transition in methods_a to its corresponding C++ code implementation
+  abs : the name, variables, data, and interface functions of abstraction specification to match against
+  f_v : maps all variables in abs  to its corresponding C++ member variable implementation;
+  f_d : maps each possible abstraction state in abs to its corresponding C++ data representation
+  f_m : maps each state transition in methods_a to its corresponding C++ code implementation
 ***>
 <code AbstractionImpl pars=(abs, f_v, f_d, f_m)/>
 
 <*** 
-    Input: data_a data from abstraction specification to match against
-           vars_i member variables of C++ class to analyze
-           methods_i member methods of C++ class to analyze
-    returns AbstractionDataImpl if semantics of data_a can be successfully mapped to the variables and methods of the C++ class
+  from : abstraction variable
+  to : member variable of C++ code implementation
+***>
+<code MappingOfVariables pars=(from, to)/>
+
+<************************************************************
+Forward declarations
+************************************************************>
+<*** 
+  Input = data_a : data from abstraction specification to match against
+          vars_i : member variables of C++ class to analyze
+          methods_i : member methods of C++ class to analyze
+  Output = returns AbstractionDataImpl if semantics of data_a can be successfully mapped to the variables and methods of the C++ class
 ***>
 <xform MatchDataSemantics pars=(data_a, vars_i, methods_i)/>
 
 <*** 
-    returns AbstractionFunctionImpl if semantics of m_a can be successfully mapped to the variables and methods of the C++ class
+  Returns AbstractionFunctionImpl if semantics of m_a can be successfully mapped to the variables and methods of the C++ class
 ***>
 <xform MatchFunctionSemantics pars=(m_a, methods_i, f_v, f_d)/>
 
 <*** 
-    Input: p_v = position variables of abstraction to be matched against
-           p_i = pointer member variables of C++ class to be analyzed
-    returns a list of possible implementations of all position variables of abstraction 
+  Input = p_v : position variables of abstraction to be matched against
+          p_i : pointer member variables of C++ class to be analyzed
+  Output = returns a list of possible implementations of all position variables of abstraction 
 ***>
 <xform PossibleMappings pars=(p_v, p_i)/>
 
-<*** 
-    returns position variables of abstraction given set of valid internal states of abstraction
+<***
+  Returns position variables of abstraction given set of valid internal states of abstraction
 ***>
 <xform PositionVariablesOfAbstraction pars=(data_a)/>
 
 <*** 
-    returns pointer member variables of C++ class
+  Returns pointer member variables of C++ class
 ***>
 <xform PointerMemberVariablesOfClass pars=(vars_i)/>
 
 <*** 
-    Input = d_a : an abstraction state that includes list of abstraction variables (e.g., top)
-            f_v : mapping of abstraction variables to class variables 
-   returns implementation of abstraction state by replacing abstraction var by class variables
+  Input = d_a : an abstraction state that includes list of abstraction variables (e.g., top)
+          f_v : mapping of abstraction variables to class variables 
+  Output = returns implementation of abstraction state by replacing abstraction var by class variables
 ***>
 <xform TranslateToImplementation pars=(d_a, f_v)/>
 
 <*** 
-    Given an abstraction state transition, returns starting and ending states
+  Given an abstraction state transition, returns starting and ending states
 ***>
 <xform AbstractionTransition pars=(m_a)/>
 
-<*** todo: needs design ***>
+<*** 
+  Returns TRUE if target is in input. FALSE otherwise
+***>
+<xform IsSubset pars=(input, target)/>
+
+<*** 
+  todo: needs design 
+***>
 <xform AdaptApI/>
 
-<*** todo: needs design ***>
+<***
+  todo: needs design
+***>
 <xform SymbolicEvaluation pars=(m_i, f_d)/>
 
-<code MappingOfVariables pars=(from, to)/>
-
-<** Temporary for SymbolicEvaluation mockup **>
+<** attention: Temporary global macro for SymbolicEvaluation mockup **>
 <define className ""/>
 
 <************************************************************
@@ -144,34 +160,32 @@ returns (f_v, f_d, f_m)  where
 *************************************************************>
 <xform MatchAbstraction pars=(input, abs)>
   CODE.ClassType#(name_i, body_i, _) = input;
-  
-  GLOBAL.className = name_i;
-
   vars_i = XFORM.member_variables(body_i);
   methods_i = XFORM.member_functions(input);
 
   CODE.Abstraction#(name_a, data_a, methods_a) = abs;
 
+  <* attention: temporarily used for SymbolicEvaluation mockup *>
+  GLOBAL.className = name_i;
+  
   result = NULL;
-  foreach AbstractionDataImpl#(_, f_v =_, f_d = _) \in MatchDataSemantics(data_a, vars_i, methods_i) do
+
+  foreach t=AbstractionDataImpl#(_, f_v =_, f_d = _) \in MatchDataSemantics(data_a, vars_i, methods_i) do
     f_m = NULL;
     succ = TRUE;
-
-    foreach m_a = CODE.AbstractionMethod \in methods_a do
-      c_m = DEBUG{MatchFunctionSemantics(m_a, methods_i, f_v, f_d)};
+    foreach m_a = CODE.AbstractionMethod#(_,_) \in methods_a do
+      c_m = MatchFunctionSemantics(m_a, methods_i, f_v, f_d);
       if (c_m : NULL) {
         succ = FALSE; 
-        break;
+        continue; <*attention: debug?*>
       } 
       f_m = (XFORM.AdaptApI(m_a, c_m)) :: f_m;
     enddo;
-    
     if (succ) {
       result = (CODE.AbstractionImpl#(abs, f_v, f_d, f_m))  :: result;
     }
   enddo;
   return result;
-  
 </xform>
 
 <************************************************************
@@ -187,7 +201,7 @@ returns AbstractionDataImpl if semantics of data_a can be successfully mapped to
   p_i = XFORM.PointerMemberVariablesOfClass(vars_i);
   result = NULL;
   mappings = XFORM.PossibleMappings(p_v, p_i);
-  DEBUG{mappings};
+  
   for(p=mappings; p != NULL; p = cdr(p)){
     f_v = car(p);
     D_i = NULL;  <<* D_i is all internal state implementations
@@ -196,24 +210,19 @@ returns AbstractionDataImpl if semantics of data_a can be successfully mapped to
       D_i = d_i :: D_i;
     enddo;
     succ = TRUE;
-
-    D_j = NULL;
     foreach cur=(CODE.FunctionDecl|CODE.TemplateDecl) \in methods_i do
-      if (cur : CODE.TemplateDecl#(_,CODE.FunctionDecl#(CLEAR f,_,_,_))|CODE.FunctionDecl#(CLEAR f,_,_,_))
-        d_j = XFORM.SymbolicEvaluation(f, D_i);
-        D_j = d_j :: D_j;
-        if(!Lookup(D_i, d_j)){
+      if (cur : CODE.TemplateDecl#(_,CODE.FunctionDecl#(CLEAR f,_,_,_))|CODE.FunctionDecl#(CLEAR f,_,_,_)){
+        d_j = XFORM.SymbolicEvaluation(f, f_v);
+        if(!XFORM.IsSubset(D_i, d_j)){
           succ = FALSE;
           break;
         };
+      }
     enddo;
-
-    if (succ)
-      print("What is happening");
+    if (succ){
       result = (CODE.AbstractionDataImpl#(_,f_v,D_i)) :: result;
+    }
   }
-
-  print("RESULT from MatchDataSemantics is: " result);
   return result;
 </xform>
 
@@ -231,20 +240,22 @@ returns AbstractionFunctionImpl if semantics of m_a can be successfully mapped t
 <xform MatchFunctionSemantics pars=(m_a, methods_i, f_v, f_d)>
   result = NULL;
   foreach cur=(CODE.FunctionDecl|CODE.TemplateDecl) \in methods_i do
-      if (cur : CODE.TemplateDecl#(_,CODE.FunctionDecl#(CLEAR f,_,_,_))|CODE.FunctionDecl#(CLEAR f,_,_,_)){
-        d_j = XFORM.SymbolicEvaluation(f, f_d);
-        DEBUG{d_j};
-        (d_a, d_b) = XFORM.AbstractionTransition(m_a);
-        DEBUG{d_a d_b};
-        da_fv = XFORM.TranslateToImplementation(d_a, f_v);
-        db_fv = XFORM.TranslateToImplementation(d_b, f_v);
-        DEBUG{da_fv db_fv};
-        <* Must debug *>
-        if (XFORM.is_subset(da_fv, f_d) && XFORM.is_subset(db_fv, f_d)){
-          result = (m_a, d_j) :: result;
-        }
-        result = CODE.AbstractionFunctionImpl#(f, d_j) :: result;
-      }
+    if (cur : CODE.TemplateDecl#(_,CODE.FunctionDecl#(CLEAR f,_,_,_)) | CODE.FunctionDecl#(CLEAR f,_,_,_)){
+      d_j = XFORM.SymbolicEvaluation(f, f_d);
+      (d_a, d_b) = XFORM.AbstractionTransition(m_a);
+      foreach CODE.Record#(da_fv=_) \in XFORM.TranslateToImplementation(d_a, f_v) do
+        foreach CODE.Record#(db_fv=_) \in XFORM.TranslateToImplementation(d_b, f_v) do
+          <*DEBUG{f};
+          DEBUG{d_a};
+          DEBUG{d_b};
+          DEBUG{da_fv};
+          DEBUG{db_fv};*>
+          if (XFORM.IsSubset(da_fv, f_d) && XFORM.IsSubset(db_fv, d_j)){
+            result = CODE.AbstractionFunctionImpl#(f, d_j) :: result;
+          }
+        enddo;
+      enddo;
+    }
   enddo;
   return result;
 </xform>
@@ -253,20 +264,21 @@ returns AbstractionFunctionImpl if semantics of m_a can be successfully mapped t
 Helper Functions
 *************************************************************>
 <***
-Input = data_a : a representation of the internal state of the abstraction
-Output = position variables of the internal state of the abstraction where position variables are defined as variables not followed by ...
+  Input = data_a : a representation of the internal state of the abstraction
+  Output = position variables of the internal state of the abstraction
+           where position variables are defined as variables not followed by ...
 ***>
 <xform PositionVariablesOfAbstraction pars=(data_a)>
-  result=NULL;
+  result = NULL;
   foreach n = ID \in data_a do
     result = n :: result;
   enddo;
- return result;
+  return result;
 </xform>
 
 <***
-Input = vars_i : member variables of C++ class being analyzed
-Output = member variables that are pointers
+  Input = vars_i : member variables of C++ class being analyzed
+  Output = member variables that are pointers
 ***>
 <xform PointerMemberVariablesOfClass pars=(vars_i)>
   result=NULL;
@@ -279,9 +291,10 @@ Output = member variables that are pointers
 </xform>
 
 <*** 
-Input = d_a : an abstraction state that includes list of abstraction variables (e.g., top)
-        f_v : mapping of abstraction variables to class variables 
-Output = returns implementation of abstraction state by replacing abstraction var by class variables in the representation of the abstraction state
+  Input = d_a : an abstraction state that includes list of abstraction variables (e.g., top)
+          f_v : mapping of abstraction variables to class variables 
+  Output = returns implementation of abstraction state by replacing abstraction var 
+           by class variables in the representation of the abstraction state
 ***>
 <xform TranslateToImplementation pars=(d_a, f_v)>
   output = d_a;
@@ -292,32 +305,36 @@ Output = returns implementation of abstraction state by replacing abstraction va
 </xform>
 
 <*** 
-Input = m_a : single abstraction state transition
-Output = d_a : set of abstraction states that can be used as input to state transition m_a 
-         d_b : set of abstraction states that can be produced as output by state transition m_a
+  Input = m_a : single abstraction state transition
+  Output = d_a : set of abstraction states that can be used as input to state transition m_a 
+          d_b : set of abstraction states that can be produced as output by state transition m_a
 ***>
 <xform AbstractionTransition pars=(m_a)>
   d_a = NULL;
   d_b = NULL;
-
+  DEBUG{m_a};
   CODE.AbstractionMethod#(_,body=_) = m_a;
-
   foreach mspec = CODE.MethodSpec#(r=_,_,o=_,_) \in body do
+    DEBUG{r o};
     d_a = r :: d_a;
     d_b = o :: d_b;
   enddo;
-
+  DEBUG{d_a d_b};
   return (d_a, d_b);
 </xform>
 
+<***
+  Input = 
+  Output = 
+***>
 <xform AdaptApI pars=(a, b)>
-  print("******************************Placeholder for AdaptAPI");
+  a;
 </xform>
 
 <***
-Input = mapping : list of combination pairs of a position variable and a pointer member variable
-        target : a position variable or pointer member variable
-Output = returns TRUE if the target can be found in mapping
+  Input = mapping : list of combination pairs of a position variable and a pointer member variable
+          target : a position variable or pointer member variable
+  Output = returns TRUE if the target can be found in mapping
 ***>
 <xform MappingContains pars=(mapping, target)>
   foreach mv = CODE.MappingOfVariables#(_,to=_) \in mapping do
@@ -328,13 +345,15 @@ Output = returns TRUE if the target can be found in mapping
   return FALSE;
 </xform>
 
-
 <*** 
 Input = p_v : position variables of abstraction to be matched against
         p_i : pointer member variables of C++ class to be analyzed
-Output = returns a list of possible abstraction implementations, where each abstraction implementation is a mapping of all position variables of abstraction to pointer member variables of C++ class. 
+Output = returns a list of possible abstraction implementations, 
+         where each abstraction implementation is a mapping of 
+         all position variables of abstraction to pointer member variables of C++ class. 
     
-Each mapping consists of each position variable mapped to a single pointer member variable of C++ class. There should be no repetition of either position variables or pointer member variables in each abstraction implementation.
+Each mapping consists of each position variable mapped to a single pointer member variable of C++ class. 
+There should be no repetition of either position variables or pointer member variables in each abstraction implementation.
 ***>
 <xform PossibleMappings pars=(p_v, p_i)>
   result = NULL;
@@ -360,11 +379,11 @@ Each mapping consists of each position variable mapped to a single pointer membe
 </xform>
 
 <***
-Input = input : list of elements to be permuted
-        start : starting index of permutation
-        end : size of input
-        permutations : current list of permutations
-Output = list of permuted elements from given input
+  Input = input : list of elements to be permuted
+          start : starting index of permutation
+          end : size of input
+          permutations : current list of permutations
+  Output = list of permuted elements from given input
 ***>
 <xform PermuteMappings pars=(input)>
   res = NULL;
@@ -407,8 +426,19 @@ Output = list of permuted elements from given input
     }else if(m_i : "PushFirst"){
       res = ("head" "OneOrMoreData" "end");
     }else{
-      res = ("head" "ZeroOrMoreData" "end");
+      res = ("head" CODE.ZeroOrMoreData "end");
     }
   }
   return res;
+</xform>
+
+<* MOCK UP TO BE REFINED *>
+<xform IsSubset pars=(input, target)>
+  DEBUG{input target};
+  <*for (p = input; p != NULL; p = cdr(p)) {
+    if (car(p) : target) {
+      return TRUE;
+    }
+  }*>
+  return TRUE;
 </xform>
