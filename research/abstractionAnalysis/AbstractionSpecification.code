@@ -1,28 +1,62 @@
 <define PARSE LIST(CODE.Abstraction, "\n")/>
 <define TOKEN (("." "." ".") ("("")"))/>
+<define EXP_UOP ("EqualOrMoreData")/>
 
-<code Abstraction pars=(name : ID, data : CODE.Record, methods : LIST(CODE.AbstractionMethod, "\n"))>
+<code ZeroOrMoreData > elem ... </code>
+
+<code PositionVariable pars=(val: ID)>
+@val@
+</code>
+
+<code FreeVariable pars=(val: INT)>
+@val@
+</code>
+
+<code ConstantVariable pars=(val: "...")>
+@val@
+</code>
+
+<code TwoData pars=(state1 : CODE.AbstractionState, state2 : CODE.AbstractionState)>
+@state1@@state2@
+</code>
+
+<code NData pars=(state1 : CODE.AbstractionState, n : INT)>
+@state1@^@n@
+</code>
+
+<code NMoreData pars=(state1 : CODE.AbstractionState, n : INT)>
+@state1@CODE.EqualOrMoreData@n@+
+</code>
+
+<code Abstraction pars=(name : ID, data : CODE.AbstractionState, methods : LIST(CODE.AbstractionFunction, "\n"))>
 @name@ : @data@ with
 {
   @methods@
 };
 </code>
 
-<code Record pars=(variables : LIST(CODE.ZeroOrMoreData|ID,""))>
-{ @variables@ }
-</code>
-
-<code ZeroOrMoreData > elem ... </code>
-
-<code AbstractionMethod pars=(name : ID, body : LIST(CODE.MethodSpec, "\n"))>
+<code AbstractionFunction pars=(name : ID, body : LIST(CODE.AbstractionSpec, "\n"))>
 @name@ : @body@
 </code>
 
-<code MethodSpec pars = (thisObj : CODE.Record, inputs : CODE.RestOfInput|"",modifiedObj : CODE.Record,outputs : CODE.RestOfInput|"")> 
+<*debug: should this be in order of precedence?*>
+<code AbstractionState pars=(variables : LIST(CODE.TwoData|CODE.NData|CODE.NMoreData|CODE.PositionVariable|CODE.FreeVariable|CODE.ConstantVariable,""))>
+{ @variables@ }
+</code>
+
+<code AbstractionStateImpl pars=(variables : LIST(CODE.ZeroOrMoreData|ID,""))>
+{ @variables@ }
+</code>
+
+<code AbstractionSpec pars = (thisObj : CODE.AbstractionState, inputs : CODE.RestOfInput|"",modifiedObj : CODE.AbstractionState,outputs : CODE.RestOfInput|"")> 
 @thisObj@@inputs@ -> @modifiedObj@@outputs@;
 </code>
 
-<code Object pars=(val : ID | CODE.Record)>
+<code MethodSpec pars = (thisObj : CODE.AbstractionStateImpl, inputs : CODE.RestOfInput|"",modifiedObj : CODE.AbstractionStateImpl,outputs : CODE.RestOfInput|"")> 
+@thisObj@@inputs@ -> @modifiedObj@@outputs@;
+</code>
+
+<code Object pars=(val : ID | CODE.MethodSpec)>
 @val@
 </code>
 
