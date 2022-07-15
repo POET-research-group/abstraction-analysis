@@ -1,4 +1,4 @@
-Stack: { top elem ... } with
+Stack: { top ... } where top: Positions
 {
   Pop: { top elem1 elem ...} -> { top elem ...} * elem1;
   Push: { top elem ... } * elem1 -> { top elem1 elem ...};

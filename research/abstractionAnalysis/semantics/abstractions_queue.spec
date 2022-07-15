@@ -1,4 +1,4 @@
-Queue: { front elem ... back } with
+Queue: { front ... back } where front, back: Positions
 {
   Pop: {front elem1 elem ... back} -> {front elem ... back} * elem1;
   Push: {front elem ... back} * elem1 -> {front elem ... elem2 back}; 

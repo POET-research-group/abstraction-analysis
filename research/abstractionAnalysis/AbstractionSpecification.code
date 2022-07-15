@@ -1,35 +1,20 @@
 <define PARSE LIST(CODE.Abstraction, "\n")/>
 <define TOKEN (("." "." ".") ("("")"))/>
 <define EXP_UOP ("EqualOrMoreData")/>
-
-<code ZeroOrMoreData > elem ... </code>
-
-<code PositionVariable pars=(val: ID)>
-@val@
-</code>
-
-<code FreeVariable pars=(val: INT)>
-@val@
-</code>
-
-<code ConstantVariable pars=(val: "...")>
-@val@
-</code>
-
-<code TwoData pars=(state1 : CODE.AbstractionState, state2 : CODE.AbstractionState)>
-@state1@@state2@
-</code>
+<define KEYWORDS ("Positions")/>
 
 <code NData pars=(state1 : CODE.AbstractionState, n : INT)>
 @state1@^@n@
 </code>
 
 <code NMoreData pars=(state1 : CODE.AbstractionState, n : INT)>
-@state1@CODE.EqualOrMoreData@n@+
+@state1@^@n@+
 </code>
 
-<code Abstraction pars=(name : ID, data : CODE.AbstractionState, methods : LIST(CODE.AbstractionFunction, "\n"))>
-@name@ : @data@ with
+<code ArbitraryData> ... </code>
+
+<code Abstraction pars=(name : ID, data : CODE.AbstractionState, vars : LIST(ID,","), type: "Positions"|"", methods : LIST(CODE.AbstractionFunction, "\n"))>
+@name@ : @data@ where @vars@: @type@
 {
   @methods@
 };
@@ -39,12 +24,11 @@
 @name@ : @body@
 </code>
 
-<*debug: should this be in order of precedence?*>
-<code AbstractionState pars=(variables : LIST(CODE.TwoData|CODE.NData|CODE.NMoreData|CODE.PositionVariable|CODE.FreeVariable|CODE.ConstantVariable,""))>
+<code AbstractionState pars=(variables : LIST(ID|CODE.ArbitraryData|CODE.NData|CODE.NMoreData,""))>
 { @variables@ }
 </code>
 
-<code AbstractionStateImpl pars=(variables : LIST(CODE.ZeroOrMoreData|ID,""))>
+<code AbstractionStateImpl pars=(variables : LIST(CODE.ArbitraryData|ID,""))>
 { @variables@ }
 </code>
 
