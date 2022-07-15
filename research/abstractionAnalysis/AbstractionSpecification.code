@@ -1,0 +1,49 @@
+<define PARSE LIST(CODE.Abstraction, "\n")/>
+<define TOKEN (("." "." ".") ("("")"))/>
+<define EXP_UOP ("EqualOrMoreData")/>
+<define KEYWORDS ("Positions")/>
+
+<code NData pars=(state1 : CODE.AbstractionState, n : INT)>
+@state1@^@n@
+</code>
+
+<code NMoreData pars=(state1 : CODE.AbstractionState, n : INT)>
+@state1@^@n@+
+</code>
+
+<code ArbitraryData> ... </code>
+
+<code Abstraction pars=(name : ID, data : CODE.AbstractionState, vars : LIST(ID,","), type: "Positions"|"", methods : LIST(CODE.AbstractionFunction, "\n"))>
+@name@ : @data@ where @vars@: @type@
+{
+  @methods@
+};
+</code>
+
+<code AbstractionFunction pars=(name : ID, body : LIST(CODE.AbstractionSpec, "\n"))>
+@name@ : @body@
+</code>
+
+<code AbstractionState pars=(variables : LIST(ID|CODE.ArbitraryData|CODE.NData|CODE.NMoreData,""))>
+{ @variables@ }
+</code>
+
+<code AbstractionStateImpl pars=(variables : LIST(CODE.ArbitraryData|ID,""))>
+{ @variables@ }
+</code>
+
+<code AbstractionSpec pars = (thisObj : CODE.AbstractionState, inputs : CODE.RestOfInput|"",modifiedObj : CODE.AbstractionState,outputs : CODE.RestOfInput|"")> 
+@thisObj@@inputs@ -> @modifiedObj@@outputs@;
+</code>
+
+<code MethodSpec pars = (thisObj : CODE.AbstractionStateImpl, inputs : CODE.RestOfInput|"",modifiedObj : CODE.AbstractionStateImpl,outputs : CODE.RestOfInput|"")> 
+@thisObj@@inputs@ -> @modifiedObj@@outputs@;
+</code>
+
+<code Object pars=(val : ID | CODE.MethodSpec)>
+@val@
+</code>
+
+<code RestOfInput pars=(val : LIST1(CODE.Object,"*"))> 
+*@val@
+</code>
