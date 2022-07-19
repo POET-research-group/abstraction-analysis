@@ -13,7 +13,7 @@
 
 <code ArbitraryData> ... </code>
 
-<code Abstraction pars=(name : ID, data : CODE.AbstractionState, vars : LIST(ID,","), type: "Positions"|"", methods : LIST(CODE.AbstractionFunction, "\n"))>
+<code Abstraction pars=(name : ID, data : CODE.AbstractionState, vars : LIST(ID,","), type: "Positions"|STRING, methods : LIST(CODE.AbstractionFunction, "\n"))>
 @name@ : @data@ where @vars@: @type@
 {
   @methods@
@@ -32,18 +32,22 @@
 { @variables@ }
 </code>
 
-<code AbstractionSpec pars = (thisObj : CODE.AbstractionState, inputs : CODE.RestOfInput|"",modifiedObj : CODE.AbstractionState,outputs : CODE.RestOfInput|"")> 
+<code AbstractionSpec pars = (thisObj : CODE.AbstractionState, inputs : CODE.RestOfInput|"",modifiedObj : CODE.AbstractionState,outputs : CODE.RestOfOutput|"")> 
 @thisObj@@inputs@ -> @modifiedObj@@outputs@;
 </code>
 
-<code MethodSpec pars = (thisObj : CODE.AbstractionStateImpl, inputs : CODE.RestOfInput|"",modifiedObj : CODE.AbstractionStateImpl,outputs : CODE.RestOfInput|"")> 
+<code MethodSpec pars = (thisObj : CODE.AbstractionStateImpl, inputs : CODE.RestOfInput|"",modifiedObj : CODE.AbstractionStateImpl,outputs : CODE.RestOfOutput|"")> 
 @thisObj@@inputs@ -> @modifiedObj@@outputs@;
 </code>
 
-<code Object pars=(val : ID | CODE.MethodSpec)>
+<code Object pars=(val : ID | CODE.ArbitraryData)>
 @val@
 </code>
 
-<code RestOfInput pars=(val : LIST1(CODE.Object,"*"))> 
+<code RestOfInput pars=(val : LIST(CODE.Object,"*"))> 
+*@val@
+</code>
+
+<code RestOfOutput pars=(val : LIST(CODE.Object,"*"))> 
 *@val@
 </code>
