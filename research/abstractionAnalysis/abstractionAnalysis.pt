@@ -31,11 +31,9 @@ Main driver for abstraction analysis
       print("*****************************************************************");
       print("MATCHING ATTEMPT #" n);
       print("*****************************************************************");
-      <*print("Arguments for MatchAbstraction are: ");
-      print("class:");
-      print(class);
-      print("abs:");*>
+      <*print("Arguments for MatchAbstraction are: ");*>
       print(abs);
+      print(GLOBAL.SymTable);
       result1 = XFORM.MatchAbstraction(class, abs);
       if (result1 != NULL) {
          result = result1 :: result;
