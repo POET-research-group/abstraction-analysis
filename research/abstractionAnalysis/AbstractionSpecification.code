@@ -16,13 +16,18 @@ include analysis.pt
 <code ArbitraryData> ... </code>
 
 <code Abstraction
-pars=(name : ID, data : CODE.AbstractionState, 
-      vars : LIST(ID,","), type: "Positions"|"", 
+pars=(name : ID, 
+      data : CODE.AbstractionState, 
+      vars : LIST(ID,","), 
+      type: "Positions"|"", 
       methods : LIST(CODE.AbstractionFunction, "\n")) 
-rebuild=(r=Abstraction#(name, data, vars, type, methods);
-        insert_typeInfo(type, vars);
-        r)>
-@name@ : @data@ where @vars@: @type@
+symtab=""
+parse=( 
+      name ":"  eval(XFORM.enter_block("NEW")) data "where" vars ":" type
+      "{" methods "}"";"
+      eval(insert_typeInfo(type, vars))
+      eval(return(Abstraction[symtab=XFORM.exit_block(data)]#(name,data,vars,type,methods))))>
+@name@ : @data@
 {
   @methods@
 };
