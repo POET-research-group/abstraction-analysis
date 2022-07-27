@@ -28,7 +28,7 @@ rebuild=(r=Abstraction#(name, data, vars, type, methods);
 };
 </code>
 
-<code AbstractionFunction pars=(name : ID, body : LIST(CODE.AbstractionSpec, "\n"))>
+<code AbstractionFunction pars=(name : ID, body : LIST(CODE.TransitionSpec, "\n"))>
 @name@ : @body@
 </code>
 
@@ -40,7 +40,7 @@ rebuild=(r=Abstraction#(name, data, vars, type, methods);
 { @variables@ }
 </code>
 
-<code AbstractionSpec 
+<code TransitionSpec 
 pars = (AbstractionStartState : CODE.AbstractionState, inputs : CODE.RestOfInput|"",
        AbstractionEndState : CODE.AbstractionState, outputs : CODE.RestOfOutput|"")> 
 @AbstractionStartState@@inputs@ -> @AbstractionEndState@@outputs@;
