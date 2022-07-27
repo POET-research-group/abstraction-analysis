@@ -1,0 +1,17 @@
+
+class SinglyLinkedListWrap is a Stack with 
+{
+    Stack.top = SinglyLinkedListWrap.head;
+    Stack.Pop() =  { t = SinglyLinkedListWrap.First(); SinglyLinkedListWrap.PopFirst(); return t.GetEntry(); }
+    Stack.Push(elem) =  SinglyLinkedListWrap.PushFirst(elem); 
+    Stack.Empty() =  { SinglyLinkedListWrap.head == null };
+};
+
+class SinglyLinkedListWrap is a Queue with 
+{
+    Queue.front = SinglyLinkedListWrap.head;
+    Queue.back = SinglyLinkedListWrap.end;
+    Queue.Pop() =  { t = SinglyLinkedListWrap.First(); SinglyLinkedListWrap.PopFirst(); return t.GetEntry(); }
+    Queue.Push(elem) =  PushLast(elem); 
+    Queue.Empty() =  { SinglyLinkedListWrap.head == null } or {SinglyLinkedListWrap.end == null }
+};

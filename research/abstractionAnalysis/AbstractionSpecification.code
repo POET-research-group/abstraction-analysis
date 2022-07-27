@@ -1,3 +1,5 @@
+include analysis.pt
+
 <define PARSE LIST(CODE.Abstraction, "\n")/>
 <define TOKEN (("." "." ".") ("("")"))/>
 <define EXP_UOP ("EqualOrMoreData")/>
@@ -13,14 +15,26 @@
 
 <code ArbitraryData> ... </code>
 
-<code Abstraction pars=(name : ID, data : CODE.AbstractionState, vars : LIST(ID,","), type: "Positions"|"", methods : LIST(CODE.AbstractionFunction, "\n"))>
-@name@ : @data@ where @vars@: @type@
+<code Abstraction
+pars=(name : ID, 
+      data : CODE.AbstractionState, 
+      varDecls : LIST(CODE.VarDecl,";"), 
+      methods : LIST(CODE.AbstractionFunction, "\n")) 
+symtab=""
+parse=( 
+      name ":"  eval(XFORM.enter_block("NEW")) data "where" varDecls
+      "{" methods "}"";"
+      eval(foreach v=CODE.VarDecl#(vars, type) \in varDecls do
+        insert_typeInfo(type, vars);
+      enddo;)
+      eval(return(Abstraction[symtab=XFORM.exit_block(data)]#(name,data,varDecls,methods))))>
+@name@ : @data@
 {
   @methods@
 };
 </code>
 
-<code AbstractionFunction pars=(name : ID, body : LIST(CODE.AbstractionSpec, "\n"))>
+<code AbstractionFunction pars=(name : ID, body : LIST(CODE.TransitionSpec, "\n"))>
 @name@ : @body@
 </code>
 
@@ -32,18 +46,24 @@
 { @variables@ }
 </code>
 
-<code AbstractionSpec pars = (thisObj : CODE.AbstractionState, inputs : CODE.RestOfInput|"",modifiedObj : CODE.AbstractionState,outputs : CODE.RestOfInput|"")> 
-@thisObj@@inputs@ -> @modifiedObj@@outputs@;
+<code TransitionSpec 
+pars = (AbstractionStartState : CODE.AbstractionState, inputs : CODE.RestOfInput|"",
+       AbstractionEndState : CODE.AbstractionState, outputs : CODE.RestOfOutput|"")> 
+@AbstractionStartState@@inputs@ -> @AbstractionEndState@@outputs@;
 </code>
 
-<code MethodSpec pars = (thisObj : CODE.AbstractionStateImpl, inputs : CODE.RestOfInput|"",modifiedObj : CODE.AbstractionStateImpl,outputs : CODE.RestOfInput|"")> 
-@thisObj@@inputs@ -> @modifiedObj@@outputs@;
-</code>
-
-<code Object pars=(val : ID | CODE.MethodSpec)>
+<code Object pars=(val : ID | CODE.ArbitraryData)>
 @val@
 </code>
 
 <code RestOfInput pars=(val : LIST1(CODE.Object,"*"))> 
 *@val@
+</code>
+
+<code RestOfOutput pars=(val : LIST(CODE.Object,"*"))> 
+*@val@
+</code>
+
+<code VarDecl pars=(vars : LIST(ID,","), type : "Positions"|"")> 
+@vars@ : @type@
 </code>
