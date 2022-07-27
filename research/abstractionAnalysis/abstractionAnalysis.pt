@@ -165,12 +165,12 @@ returns (f: f_v, f_d, f_m)  where
   GLOBAL.className = name_i;
   
   result = NULL;
-
   foreach t=AbstractionDataImpl#(_, f_v =_, f_d = _) \in MatchDataSemantics(states_a, vars_i, methods_i) do
     f_m = NULL;
     succ = TRUE;
     foreach m_a = CODE.AbstractionFunction#(_,_) \in methods_a do
       c_m = MatchFunctionSemantics(m_a, methods_i, f_v, f_d);
+      print(c_m);
       if (c_m : NULL) {
         succ = FALSE; 
         break; <*attention: debug?*>
@@ -423,9 +423,9 @@ There should be no repetition of either position variables or pointer member var
     if(m_i : "DeleteAll"){
       res = CODE.AbstractionStateImpl#("head" "end");
     }else if(m_i : "PushFirst"){
-      res = CODE.AbstractionStateImpl#("head" "OneOrMoreData" "end");
+      res = CODE.AbstractionStateImpl#("head" "elem" CODE.ArbitraryData "end");
     }else{
-      res = CODE.AbstractionStateImpl#("head" CODE.ZeroOrMoreData "end");
+      res = CODE.AbstractionStateImpl#("head" CODE.ArbitraryData "end");
     }
   }
   return res;
