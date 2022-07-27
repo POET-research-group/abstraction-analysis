@@ -33,7 +33,6 @@ Main driver for abstraction analysis
       print("*****************************************************************");
       <*print("Arguments for MatchAbstraction are: ");*>
       print(abs);
-      print(GLOBAL.SymTable);
       result1 = XFORM.MatchAbstraction(class, abs);
       if (result1 != NULL) {
          result = result1 :: result;
@@ -160,7 +159,7 @@ returns (f: f_v, f_d, f_m)  where
   CODE.ClassType#(name_i, body_i, _) = input;
   vars_i = XFORM.member_variables(body_i);
   methods_i = XFORM.member_functions(input);
-  CODE.Abstraction#(name_a, states_a, variables_a, _, methods_a) = abs;
+  CODE.Abstraction#(name_a, states_a, variables_a, methods_a) = abs;
 
   <* note: temporarily used for SymbolicEvaluation mockup *>
   GLOBAL.className = name_i;

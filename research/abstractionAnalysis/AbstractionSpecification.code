@@ -18,23 +18,23 @@ include analysis.pt
 <code Abstraction
 pars=(name : ID, 
       data : CODE.AbstractionState, 
-      vars : LIST(ID,","), 
-      type: "Positions"|"", 
+      varDecls : LIST(CODE.VarDecl,";"), 
       methods : LIST(CODE.AbstractionFunction, "\n")) 
 symtab=""
 parse=( 
-      name ":"  eval(XFORM.enter_block("NEW")) data "where" vars ":" type
+      name ":"  eval(XFORM.enter_block("NEW")) data "where" varDecls
       "{" methods "}"";"
-      eval(insert_typeInfo(type, vars))
-      eval(return(Abstraction[symtab=XFORM.exit_block(data)]#(name,data,vars,type,methods))))>
+      eval(foreach v=CODE.VarDecl#(vars, type) \in varDecls do
+        insert_typeInfo(type, vars);
+      enddo;)
+      eval(return(Abstraction[symtab=XFORM.exit_block(data)]#(name,data,varDecls,methods))))>
 @name@ : @data@
 {
   @methods@
 };
 </code>
 
-
-<code AbstractionFunction pars=(name : ID, body : LIST(CODE.AbstractionSpec, "\n"))>
+<code AbstractionFunction pars=(name : ID, body : LIST(CODE.TransitionSpec, "\n"))>
 @name@ : @body@
 </code>
 
@@ -46,7 +46,9 @@ parse=(
 { @variables@ }
 </code>
 
-<code AbstractionSpec pars = (AbstractionStartState : CODE.AbstractionState, inputs : CODE.RestOfInput|"",AbstractionEndState : CODE.AbstractionState, outputs : CODE.RestOfOutput|"")> 
+<code TransitionSpec 
+pars = (AbstractionStartState : CODE.AbstractionState, inputs : CODE.RestOfInput|"",
+       AbstractionEndState : CODE.AbstractionState, outputs : CODE.RestOfOutput|"")> 
 @AbstractionStartState@@inputs@ -> @AbstractionEndState@@outputs@;
 </code>
 
@@ -54,10 +56,14 @@ parse=(
 @val@
 </code>
 
-<code RestOfInput pars=(val : LIST(CODE.Object,"*"))> 
+<code RestOfInput pars=(val : LIST1(CODE.Object,"*"))> 
 *@val@
 </code>
 
 <code RestOfOutput pars=(val : LIST(CODE.Object,"*"))> 
 *@val@
+</code>
+
+<code VarDecl pars=(vars : LIST(ID,","), type : "Positions"|"")> 
+@vars@ : @type@
 </code>
